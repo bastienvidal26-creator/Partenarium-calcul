@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<meta name="description" content="Partenarium : coût réel d'un mécénat ou d'un parrainage pour une entreprise">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Partenarium">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Partenarium – Calculateur</title>
+<script>/* iPhone, iPad, Mac : police du système (SF Pro). Ailleurs (Android) : Inter, embarquée. */
+if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) document.documentElement.classList.add("apple");</script>
+<style>
+/* Typographie « Apple » : SF Pro sur iPhone/Mac (police du système), Inter (libre, licence OFL, très proche de SF Pro)
+   embarquée localement pour Android. SF Pro ne peut pas être embarquée : sa licence l'interdit hors appareils Apple. */
+@font-face{font-family:"InterApp";src:url("fonts/inter.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+:root{
+  --bg:#F2F2F7;--card:#FFFFFF;--fill:rgba(118,118,128,.12);--fill2:rgba(118,118,128,.2);
+  --tx:#000000;--tx2:#6C6C70;--tx3:#8E8E93;--sep:rgba(60,60,67,.18);
+  --acc:#1A6E8E;--acc-tint:rgba(26,110,142,.12);--on-acc:#FFFFFF;
+  --hero1:#16405C;--hero2:#0B2233;--hero-tx:#FFFFFF;
+  --good:#248A3D;--good-fill:#34C759;--warn:#B25000;--warn-bg:#FFF4E5;--bad:#D70015;
+  --tab:rgba(249,249,249,.86);--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 1px rgba(0,0,0,.04);
+  --font:"InterApp",system-ui,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+:root.apple{--font:-apple-system,BlinkMacSystemFont,"InterApp",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#000000;--card:#1C1C1E;--fill:rgba(118,118,128,.24);--fill2:rgba(118,118,128,.36);
+  --tx:#FFFFFF;--tx2:#AEAEB2;--tx3:#8E8E93;--sep:rgba(84,84,88,.6);
+  --acc:#5AB8DA;--acc-tint:rgba(90,184,218,.16);--on-acc:#00202C;
+  --hero1:#14405C;--hero2:#0A2030;--good:#30D158;--good-fill:#30D158;--warn:#FFB340;--warn-bg:#2E2110;--bad:#FF6961;
+  --tab:rgba(22,22,24,.86);--shadow:none;color-scheme:dark}}
+:root[data-theme=dark]{
+  --bg:#000000;--card:#1C1C1E;--fill:rgba(118,118,128,.24);--fill2:rgba(118,118,128,.36);
+  --tx:#FFFFFF;--tx2:#AEAEB2;--tx3:#8E8E93;--sep:rgba(84,84,88,.6);
+  --acc:#5AB8DA;--acc-tint:rgba(90,184,218,.16);--on-acc:#00202C;
+  --hero1:#14405C;--hero2:#0A2030;--good:#30D158;--good-fill:#30D158;--warn:#FFB340;--warn-bg:#2E2110;--bad:#FF6961;
+  --tab:rgba(22,22,24,.86);--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--bg);color:var(--tx)}
+body{font:17px/1.35 var(--font);letter-spacing:-.011em;font-optical-sizing:auto;-webkit-font-smoothing:antialiased;
+  padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 96px) calc(env(safe-area-inset-left) + 16px);
+  max-width:600px;margin:0 auto;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;letter-spacing:inherit;color:inherit}
+.num,input.amt,.big,.v{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+h1{font-size:34px;line-height:41px;font-weight:700;letter-spacing:-.025em;margin:6px 0 2px}
+.lead{color:var(--tx2);font-size:15px;margin:0 0 14px}
+h2{font-size:13px;font-weight:500;letter-spacing:0;text-transform:uppercase;color:var(--tx2);margin:24px 16px 7px}
+.foot{font-size:13px;line-height:18px;color:var(--tx2);margin:7px 16px 0;letter-spacing:0}
+.foot a{color:var(--acc)}
+/* Carte résultat */
+.hero{background:linear-gradient(160deg,var(--hero1),var(--hero2));color:var(--hero-tx);border-radius:22px;padding:18px 20px 16px;margin:8px 0 14px}
+.hero .lab{font-size:15px;font-weight:600;opacity:.82}
+.hero .big{font-size:clamp(42px,14vw,58px);line-height:1.05;font-weight:700;letter-spacing:-.035em;margin:4px 0 2px}
+.hero .sub{font-size:15px;opacity:.9}
+.bar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.18);margin:14px 0 8px}
+.bar i{display:block;height:100%;transition:width .25s}
+.bar .c{background:#FFFFFF}.bar .r{background:#34C759}.bar .x{background:#FFB340}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;opacity:.92;letter-spacing:0}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--d)}
+/* Contrôle segmenté */
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px;margin:0 0 12px}
+.seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px 6px;font-size:15px;font-weight:500;min-height:36px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--card);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+:root[data-theme=dark] .seg button[aria-pressed=true]{background:#636366}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .seg button[aria-pressed=true]{background:#636366}}
+/* Listes groupées façon iOS */
+.group{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.row{display:flex;align-items:center;gap:12px;min-height:50px;padding:8px 16px;position:relative}
+.group .row:not(:first-child)::before,.group>div:not(:first-child)>.row:first-child::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+details{position:relative}
+.row>label,.row>.k{flex:1;min-width:0}
+.row .k small,.row label small{display:block;color:var(--tx2);font-size:13px;letter-spacing:0;margin-top:1px}
+.row .v{color:var(--tx2);text-align:right;white-space:nowrap}
+.row .v.strong{color:var(--tx);font-weight:600}
+.row input[type=text],.row input[type=search]{border:0;background:transparent;text-align:right;width:46%;min-width:0;font-size:17px;padding:6px 0;outline:none;color:var(--tx)}
+.row input::placeholder,textarea::placeholder{color:var(--tx3)}
+.row .unit{color:var(--tx2);margin-left:-6px}
+.row select{appearance:none;-webkit-appearance:none;border:0;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%238E8E93' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right center;padding:8px 18px 8px 0;text-align:right;max-width:62%;font-size:17px;color:var(--tx2);cursor:pointer}
+.row select option{color:#000}
+.stack{display:block}
+.stack label{display:block;font-size:13px;color:var(--tx2);margin-bottom:4px;letter-spacing:0}
+.stack select{max-width:100%;width:100%;text-align:left;color:var(--tx);padding-left:0}
+textarea{width:100%;border:0;background:transparent;font-size:17px;min-height:96px;resize:vertical;outline:none;padding:12px 16px;display:block}
+/* Saisie principale */
+.amount{background:var(--card);border-radius:12px;padding:12px 16px 14px;box-shadow:var(--shadow)}
+.amount label{display:block;font-size:13px;font-weight:500;color:var(--tx2);letter-spacing:0}
+.amount .f{display:flex;align-items:baseline;gap:6px}
+input.amt{flex:1;min-width:0;border:0;background:transparent;font-size:36px;line-height:44px;font-weight:700;letter-spacing:-.03em;padding:2px 0;outline:none;color:var(--tx)}
+.amount .eu{font-size:28px;font-weight:600;color:var(--tx3)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;border:0;background:var(--fill);border-radius:99px;padding:8px 14px;font-size:15px;font-weight:500;min-height:36px;cursor:pointer}
+.chips button:active{background:var(--acc);color:var(--on-acc)}
+/* Boutons */
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 0}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;min-height:50px;padding:12px 14px;font-size:17px;font-weight:600;cursor:pointer;background:var(--acc-tint);color:var(--acc);text-align:center}
+.btn.pri{background:var(--acc);color:var(--on-acc)}
+.btn.full{grid-column:1/-1}
+.btn.danger{color:var(--bad);background:transparent}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:15px;border-radius:99px}
+.btn:active{opacity:.7}
+.btn svg{width:20px;height:20px}
+/* Alertes et notes */
+.alert{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:12px 14px;font-size:15px;line-height:20px;margin:12px 0 0;letter-spacing:-.005em}
+.ok{color:var(--good);font-weight:600}
+summary{list-style:none;display:flex;align-items:center;min-height:50px;padding:8px 16px;cursor:pointer;color:var(--acc);font-weight:500}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--tx3);border-bottom:2px solid var(--tx3);transform:rotate(45deg);transition:transform .2s}
+details[open] summary::after{transform:rotate(-135deg)}
+.detail .row{min-height:44px;font-size:15px;letter-spacing:-.005em}
+/* Comparaison */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 0}
+.tile{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);border:2px solid transparent}
+.tile .k{font-size:13px;font-weight:600;color:var(--tx2);letter-spacing:0}
+.tile .v{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:4px 0 2px}
+.tile .s{font-size:13px;color:var(--tx2);letter-spacing:0}
+.tile.best{border-color:var(--good-fill)}
+.tile .badge{display:none;font-size:12px;font-weight:600;color:var(--good);margin-top:6px}
+.tile.best .badge{display:block}
+input[type=range]{width:100%;accent-color:var(--acc);height:28px}
+.say{background:var(--card);border-radius:12px;padding:14px 16px;font-size:17px;line-height:23px;box-shadow:var(--shadow)}
+.say b{font-weight:600}
+/* Dossiers */
+.search{display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:10px;padding:0 10px;margin:4px 0 14px;min-height:38px}
+.search input{flex:1;border:0;background:transparent;outline:none;font-size:17px;padding:8px 0;min-width:0}
+.ditem{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:64px;position:relative;cursor:pointer;text-align:left;width:100%;border:0;background:transparent}
+.ditem+.ditem::before{content:"";position:absolute;top:0;left:76px;right:0;height:.5px;background:var(--sep)}
+.logo{width:48px;height:48px;border-radius:11px;flex:none;object-fit:contain;background:#fff;border:.5px solid var(--sep)}
+.ini{width:48px;height:48px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;background:var(--acc-tint);color:var(--acc)}
+.ditem .t{flex:1;min-width:0}
+.ditem .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ditem .t span{display:block;font-size:15px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.005em}
+.pill{font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--fill);color:var(--tx2);white-space:nowrap;letter-spacing:0}
+.pill.s1{background:var(--acc-tint);color:var(--acc)}.pill.s2{background:rgba(52,199,89,.16);color:var(--good)}.pill.s3{background:rgba(255,59,48,.12);color:var(--bad)}
+.empty{text-align:center;color:var(--tx2);padding:40px 20px;font-size:15px}
+.back{display:inline-flex;align-items:center;gap:2px;border:0;background:transparent;color:var(--acc);font-size:17px;padding:8px 0;min-height:44px;cursor:pointer}
+.back svg{width:22px;height:22px}
+.dhead{display:flex;align-items:center;gap:14px;margin:4px 0 12px}
+.dhead .logo,.dhead .ini{width:64px;height:64px;border-radius:14px;font-size:24px}
+.dhead h1{font-size:28px;line-height:34px;margin:0}
+/* Réglages */
+.switch{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:99px;background:var(--fill2);position:relative;flex:none;cursor:pointer;transition:background .2s;margin:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .2s}
+.switch:checked{background:var(--good-fill)}
+.switch:checked::after{transform:translateX(20px)}
+.row input.rate{width:34%}
+input[type=password]{width:100%;border:0;background:transparent;font-size:17px;padding:14px 16px;outline:none}
+/* Barre d'onglets en bas */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;background:var(--tab);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);padding:6px calc(env(safe-area-inset-right) + 4px) calc(env(safe-area-inset-bottom) + 6px) calc(env(safe-area-inset-left) + 4px)}
+nav.tabs button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:transparent;color:var(--tx3);font-size:11px;font-weight:500;letter-spacing:.01em;padding:4px 0;min-height:50px;cursor:pointer}
+nav.tabs svg{width:27px;height:27px}
+nav.tabs button[aria-current=true]{color:var(--acc);font-weight:600}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 84px);transform:translateX(-50%) translateY(8px);background:rgba(28,28,30,.94);color:#fff;padding:11px 18px;border-radius:99px;font-size:15px;font-weight:500;opacity:0;transition:.2s;pointer-events:none;max-width:90vw;text-align:center;z-index:30}
+#toast.on{opacity:1;transform:translateX(-50%)}
+/* Champ fichier invisible mais PAS display:none : sur Firefox Android, un .click() programmé sur un champ caché n'ouvre pas la galerie.
+   On enveloppe donc le champ dans un <label> : toucher le label ouvre nativement le sélecteur. */
+.vh-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none;left:0;top:0}
+.filebtn{position:relative;cursor:pointer}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav class="tabs" aria-label="Navigation">
+  <button data-go="mec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>Mécénat</button>
+  <button data-go="par"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 9.5v5h3.2L14 19V5L7.2 9.5H4z"/><path d="M17.5 9a4.2 4.2 0 0 1 0 6M7.5 14.5l1.2 4.5"/></svg>Parrainage</button>
+  <button data-go="cmp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 4v16M8 20h8M5 7.5h14M5 7.5 2.5 13a2.5 2.5 0 0 0 5 0L5 7.5zM19 7.5 16.5 13a2.5 2.5 0 0 0 5 0L19 7.5z"/></svg>Comparer</button>
+  <button data-go="dos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h3.6l2 2h7.4a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>Dossiers</button>
+  <button data-go="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7.5h9M18 7.5h2M4 16.5h3M11 16.5h9"/><circle cx="15.5" cy="7.5" r="2.4"/><circle cx="8.5" cy="16.5" r="2.4"/></svg>Réglages</button>
+</nav>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="calc">
+/* ═════════ FORMULES (testées automatiquement) ═════════
+   Taux légaux par défaut. Ils sont remplacés par data/taux.json (taux publiés) puis, si activé, par les taux saisis dans les Réglages. */
+const DEFAULTS = { r1:0.60, r2:0.40, thr:2000000, floor:20000, caRatio:0.005, ctr:0.25, isn:0.25, isr:0.15, iscap:42500, tva:0.20 };
+const round2 = x => Math.round(x * 100) / 100;
+
+/* Mécénat (art. 238 bis CGI) : réduction d'impôt sur la part du don retenue dans le plafond de l'année ; excédent reportable 5 ans. */
+function mecenat(don, ca, P) {
+  don = Math.max(0, +don || 0); ca = Math.max(0, +ca || 0);
+  const plafond = Math.max(P.floor, P.caRatio * ca);
+  const retenu = Math.min(don, plafond);
+  const red = x => P.r1 * Math.min(x, P.thr) + P.r2 * Math.max(x - P.thr, 0);
+  const reduction = red(retenu), reductionTotale = red(don);
+  return { don, plafond, retenu, reportable: don - retenu, reduction,
+    reductionReport: reductionTotale - reduction, cost: don - reduction, costApresReport: don - reductionTotale };
+}
+
+/* Impôt sur les sociétés d'un bénéfice x (taux réduit PME jusqu'au seuil, taux normal au-delà) */
+function isTax(x, P) { x = Math.max(0, x); return P.isr * Math.min(x, P.iscap) + P.isn * Math.max(x - P.iscap, 0); }
+
+/* Parrainage (art. 39-1-7° CGI) : charge déductible, l'économie dépend de l'imposition de l'entreprise. */
+function parrainage(ht, o, P) {
+  ht = Math.max(0, +ht || 0);
+  const tvaNR = o.tvaNR ? ht * P.tva : 0;      // TVA payée et non récupérable : elle devient une charge
+  const base = ht + tvaNR;                     // charge déductible
+  let saving = 0;
+  if (o.regime === "is25") saving = base * P.isn;
+  else if (o.regime === "is15") saving = base * P.isr;
+  else if (o.regime === "ismix") { const b = Math.max(0, +o.benef || 0); saving = isTax(b, P) - isTax(b - base, P); }
+  else if (o.regime === "ir") { const t = +o.tmi || 0, c = +o.soc || 0; saving = base * c + base * (1 - c) * t; }
+  else if (o.regime === "micro") saving = 0;   // micro-entreprise : abattement forfaitaire, charges réelles non déductibles
+  return { ht, tvaNR, ttc: ht + tvaNR, base, saving, taux: base > 0 ? saving / base : 0, cost: base - saving };
+}
+
+/* Recherche du montant qui donne un coût net donné (les coûts sont croissants) */
+function invert(costFn, target) {
+  target = Math.max(0, +target || 0);
+  if (target === 0) return 0;
+  let lo = 0, hi = target * 10 + 1;
+  while (costFn(hi) < target) hi *= 2;
+  for (let i = 0; i < 200; i++) { const mid = (lo + hi) / 2; if (costFn(mid) < target) lo = mid; else hi = mid; }
+  return hi;
+}
+/* Montant entier en euros le plus élevé dont le coût net ne dépasse pas le budget */
+function fitBudget(costFn, budget) {
+  budget = Math.max(0, +budget || 0);
+  let d = Math.floor(invert(costFn, budget));
+  if (costFn(d + 1) <= budget + 1e-9) d++;
+  while (d > 0 && costFn(d) > budget + 1e-9) d--;
+  return d;
+}
+const donFromBudget = (budget, ca, P) => fitBudget(d => mecenat(d, ca, P).cost, budget);
+const htFromBudget = (budget, o, P) => fitBudget(m => parrainage(m, o, P).cost, budget);
+if (typeof module !== "undefined") module.exports = { DEFAULTS, mecenat, isTax, parrainage, invert, donFromBudget, htFromBudget };
+</script>
+
+<script>
+(() => {
+"use strict";
+/* ═════════ CONFIGURATION ═════════ */
+const CONFIG = {
+  name: "Partenarium – Calculateur",
+  key: "partcalc",               // préfixe de stockage local (unique pour cette application)
+  version: "1.0.0",              // à garder identique à VERSION dans sw.js (partcalc-1.0.0)
+  gh: { owner: "bastienvidal26-creator", privateRepo: "partenarium-calcul-perso" }
+};
+/* Taux intégrés (copie de data/taux.json), utilisés au tout premier lancement hors ligne */
+const PUB0 = { updated:"2026-11-24", verifie:"24/11/2026", taux:{ ...DEFAULTS }, notes:[], sources:[] };
+
+/* ═════════ outils ═════════ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const NF = new Intl.NumberFormat("fr-FR", { maximumFractionDigits:0 });
+const nb = x => NF.format(Math.round(x)).replace(/[   ]/g, " ");
+const eur = x => nb(x) + " €";
+const pct = x => (Math.round(x * 1000) / 10).toString().replace(".", ",") + " %";
+const num = s => { const v = parseFloat(String(s ?? "").replace(/[\s  €%‰]/g, "").replace(",", ".")); return isFinite(v) ? v : 0; };
+const inVal = v => NF.format(Math.round(v)).replace(/[  ]/g, " ");
+const dateFr = t => new Date(t).toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric" });
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600); }
+const I = {
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M8 7.5l4-4 4 4M6 11H5v9.5h14V11h-1"/></svg>',
+  save:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h3.6l2 2h7.4a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 10.5v5M9.5 13h5" stroke-linecap="round"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  search:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--tx3)"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>'
+};
+
+/* ═════════ stockage sur le téléphone : IndexedDB (secours localStorage) ═════════ */
+const store = (() => {
+  let dbp = null;
+  function open() {
+    if (!dbp) dbp = new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open(CONFIG.key, 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("kv");
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      } catch (e) { rej(e); }
+    });
+    return dbp;
+  }
+  async function get(k) {
+    try {
+      const db = await open();
+      return await new Promise((res, rej) => { const q = db.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
+    } catch { return lsGet(CONFIG.key + ":" + k); }
+  }
+  async function set(k, v) {
+    try {
+      const db = await open();
+      await new Promise((res, rej) => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); });
+    } catch {
+      try { localStorage.setItem(CONFIG.key + ":" + k, JSON.stringify(v)); } catch { toast("Stockage du téléphone plein."); }
+    }
+  }
+  return { get, set };
+})();
+
+/* ═════════ état ═════════
+   items = dossiers enregistrés ; del = suppressions datées (synchro) ; calc = dernières saisies ; ovr = taux personnalisés */
+const CALC0 = { mecMode:"don", mecDon:10000, mecBudget:4000, ca:1000000, contre:0,
+  parMode:"mt", parMt:10000, parBudget:7500, regime:"is25", benef:60000, tmi:0.30, soc:0, tvaNR:false,
+  cmpMt:10000, split:50 };
+const S = { items:{}, del:{}, pub:PUB0, pubSrc:"intégrés à l'application", calc:{ ...CALC0 }, ovr:{ on:false, taux:{} },
+  view: lsGet(CONFIG.key + ":view") || "mec", cur:null, pending:null, draftImg:null, delArm:null };
+const saveT = {};
+function save(key) { clearTimeout(saveT[key]); saveT[key] = setTimeout(() => store.set(key, S[key]), 250); }
+function putItem(id, data) {
+  if (data === null) { delete S.items[id]; S.del[id] = Date.now(); }
+  else { data.updated = Date.now(); S.items[id] = data; delete S.del[id]; }
+  save("items"); save("del"); syncSoon();
+}
+/* Taux en vigueur dans l'app : intégrés < publiés (data/taux.json) < personnalisés (Réglages) */
+const rates = () => ({ ...DEFAULTS, ...(S.pub.taux || {}), ...(S.ovr.on ? S.ovr.taux : {}) });
+const ratesLabel = () => S.ovr.on ? "taux personnalisés" : `taux au ${S.pub.verifie || S.pub.updated}`;
+
+/* ═════════ taux publics : fichier data/taux.json servi par GitHub Pages ═════════ */
+async function loadPublic() {
+  try {
+    const r = await fetch("./data/taux.json", { cache:"no-cache" });
+    if (!r.ok) throw 0;
+    const d = await r.json(); if (!d || !d.taux) throw 0;
+    S.pub = d; S.pubSrc = navigator.onLine ? "fichier publié" : "copie locale"; store.set("pub", d);
+    if (S.view === "set" && !isTyping()) render(); else update();
+  } catch {} // hors ligne : on garde la copie locale
+}
+const isTyping = () => { const a = document.activeElement; return !!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)); };
+
+/* ═════════ calculs de l'écran ═════════ */
+const REG = { is25:"Société à l'IS, taux normal", is15:"PME à l'IS, taux réduit", ismix:"PME à l'IS, selon son bénéfice", ir:"Entreprise individuelle au réel (IR)", micro:"Micro-entreprise" };
+const parOpts = () => ({ regime:S.calc.regime, benef:S.calc.benef, tmi:S.calc.tmi, soc:S.calc.soc, tvaNR:S.calc.tvaNR });
+function calcMec() {
+  const P = rates(), c = S.calc;
+  const don = c.mecMode === "budget" ? donFromBudget(c.mecBudget, c.ca, P) : c.mecDon;
+  return { P, r: mecenat(don, c.ca, P) };
+}
+function calcPar() {
+  const P = rates(), c = S.calc, o = parOpts();
+  const ht = c.parMode === "budget" ? htFromBudget(c.parBudget, o, P) : c.parMt;
+  return { P, o, r: parrainage(ht, o, P) };
+}
+function calcCmp() {
+  const P = rates(), c = S.calc, o = parOpts(), x = Math.max(0, c.cmpMt), s = c.split / 100;
+  return { P, o, x, s, m: mecenat(x, c.ca, P), p: parrainage(x, o, P), mm: mecenat(x * s, c.ca, P), pp: parrainage(x * (1 - s), o, P) };
+}
+const SIGN = P => `Simulation indicative Partenarium (${ratesLabel()}), à confirmer par l'expert-comptable de l'entreprise.`;
+function summary(kind) {
+  if (kind === "mec") {
+    const { P, r } = calcMec();
+    let t = `Mécénat — don de ${eur(r.don)} à un organisme d'intérêt général\nRéduction d'impôt : ${eur(r.reduction)} (${pct(P.r1)}, art. 238 bis CGI)\nCoût réel pour l'entreprise : ${eur(r.cost)}`;
+    if (r.reportable > 0) t += `\nPlafond de l'année : ${eur(r.plafond)} ; réduction reportable sur 5 ans : ${eur(r.reductionReport)} (coût final ${eur(r.costApresReport)})`;
+    return { t: t + "\n" + SIGN(P), label:"Coût réel", big:eur(r.cost), sub:`Don ${eur(r.don)} · réduction ${eur(r.reduction)}`, amount:r.don };
+  }
+  if (kind === "par") {
+    const { P, o, r } = calcPar();
+    let t = `Parrainage — ${eur(r.ht)} HT${o.tvaNR ? ` + TVA non récupérable ${eur(r.tvaNR)}` : ""}\nCharge déductible (art. 39-1-7° CGI) · ${REG[o.regime]}\nÉconomie d'impôt : ${eur(r.saving)}\nCoût net pour l'entreprise : ${eur(r.cost)}`;
+    return { t: t + "\n" + SIGN(P), label:"Coût net", big:eur(r.cost), sub:`Parrainage ${eur(r.ht)} HT · économie ${eur(r.saving)}`, amount:r.ht };
+  }
+  const k = calcCmp();
+  const t = `Pour ${eur(k.x)} versés au projet :\n• en mécénat : coût réel ${eur(k.m.cost)}\n• en parrainage : coût net ${eur(k.p.cost)} (${REG[k.o.regime]})\n• en montage mixte (${Math.round(k.s * 100)} % mécénat) : ${eur(k.mm.cost + k.pp.cost)}`;
+  return { t: t + "\n" + SIGN(k.P), label:"Comparaison", big:`${eur(k.m.cost)} / ${eur(k.p.cost)}`, sub:`Pour ${eur(k.x)} : mécénat / parrainage`, amount:k.x };
+}
+
+/* Mise à jour des résultats SANS re-dessiner l'écran (on ne perd ni le clavier ni la saisie) */
+const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+const html = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
+const show = (id, on) => { const e = document.getElementById(id); if (e) e.hidden = !on; };
+const rowsHtml = rows => rows.map(([a, b, strong]) => `<div class="row"><span class="k">${a}</span><span class="v num${strong ? " strong" : ""}">${b}</span></div>`).join("");
+function bar(parts) { // parts : [[valeur, classe, libellé, couleur]]
+  const tot = parts.reduce((s, p) => s + Math.max(0, p[0]), 0) || 1;
+  html("bar", parts.map(p => `<i class="${p[1]}" style="width:${(Math.max(0, p[0]) / tot * 100).toFixed(2)}%"></i>`).join(""));
+  html("legend", parts.filter(p => p[0] > 0.5).map(p => `<span style="--d:${p[3]}">${p[2]} ${pct(p[0] / tot)}</span>`).join(""));
+}
+function update() {
+  const v = S.view, c = S.calc;
+  if (v === "mec") {
+    const { P, r } = calcMec();
+    if (c.mecMode === "budget") { set("h-lab", "Don possible pour ce budget"); set("h-big", eur(r.don)); set("h-sub", `Réduction d'impôt ${eur(r.reduction)} · coût réel ${eur(r.cost)}`); }
+    else { set("h-lab", "Coût réel pour l'entreprise"); set("h-big", eur(r.cost)); set("h-sub", `Don ${eur(r.don)} − réduction d'impôt ${eur(r.reduction)}`); }
+    bar([[r.cost, "c", "Coût réel", "#fff"], [r.reduction, "r", "Réduction d'impôt", "#34C759"]]);
+    show("a-plaf", r.reportable > 0);
+    if (r.reportable > 0) set("a-plaf", `Plafond de l'année : ${eur(r.plafond)} (${eur(P.floor)} ou ${String(P.caRatio * 1000).replace(".", ",")} ‰ du CA HT). Les ${eur(r.reportable)} au-delà ouvrent une réduction de ${eur(r.reductionReport)}, reportable sur les 5 exercices suivants. Coût final si le report est utilisé : ${eur(r.costApresReport)}.`);
+    const ct = c.contre, over = r.don > 0 && ct > P.ctr * r.don;
+    show("a-ctr", over);
+    if (over) set("a-ctr", `Contreparties de ${eur(ct)}, soit ${pct(ct / r.don)} du don : au-delà de ${pct(P.ctr)} (rapport de 1 à 4 admis par l'administration), le don risque d'être requalifié en parrainage et de perdre la réduction d'impôt.`);
+    set("ctr-info", r.don > 0 && ct > 0 && !over ? `${pct(ct / r.don)} du don, sous la limite de ${pct(P.ctr)}` : `Limite admise : ${pct(P.ctr)} du don (${eur(P.ctr * r.don)})`);
+    html("d-mec", rowsHtml([
+      ["Don versé", eur(r.don)],
+      ["Plafond de l'année", eur(r.plafond)],
+      ["Don retenu cette année", eur(r.retenu)],
+      [`Réduction d'impôt (${pct(P.r1)}${r.retenu > P.thr ? `, puis ${pct(P.r2)}` : ""})`, "− " + eur(r.reduction)],
+      ["Coût réel cette année", eur(r.cost), true],
+      ...(r.reportable > 0 ? [["Réduction reportable (5 ans)", eur(r.reductionReport)], ["Coût final après report", eur(r.costApresReport), true]] : [])
+    ]));
+  } else if (v === "par") {
+    const { o, r } = calcPar();
+    if (c.parMode === "budget") { set("h-lab", "Parrainage possible pour ce budget"); set("h-big", eur(r.ht)); set("h-sub", `HT · économie d'impôt ${eur(r.saving)} · coût net ${eur(r.cost)}`); }
+    else { set("h-lab", "Coût net pour l'entreprise"); set("h-big", eur(r.cost)); set("h-sub", `Parrainage ${eur(r.ht)} HT − économie d'impôt ${eur(r.saving)}`); }
+    bar([[r.cost, "c", "Coût net", "#fff"], [r.saving, "r", "Économie d'impôt", "#34C759"]]);
+    show("f-benef", o.regime === "ismix"); show("f-ir", o.regime === "ir");
+    show("a-micro", o.regime === "micro");
+    set("reg-hint", { is25:"Société à l'IS dont le bénéfice dépasse 42 500 €, ou qui n'a pas droit au taux réduit.", is15:"Taux réduit sur les 42 500 premiers euros de bénéfice, sous conditions (dont CA ≤ 10 M€, groupe compris).", ismix:"Calcul exact : 15 % jusqu'à 42 500 € de bénéfice, 25 % au-delà.", ir:"Le parrainage réduit l'impôt sur le revenu et les cotisations sociales de l'entrepreneur.", micro:"Charges réelles non déductibles en micro-entreprise : aucune économie d'impôt." }[o.regime]);
+    html("d-par", rowsHtml([
+      ["Montant HT", eur(r.ht)],
+      ...(o.tvaNR ? [["TVA non récupérable", eur(r.tvaNR)]] : []),
+      ["Charge déductible", eur(r.base)],
+      [`Économie d'impôt (${pct(r.taux)} effectif)`, "− " + eur(r.saving)],
+      ["Coût net", eur(r.cost), true]
+    ]));
+  } else if (v === "cmp") {
+    const k = calcCmp();
+    set("c-mec", eur(k.m.cost)); set("c-mec-s", `réduction ${eur(k.m.reduction)}`);
+    set("c-par", eur(k.p.cost)); set("c-par-s", `économie ${eur(k.p.saving)}`);
+    $("#t-mec")?.classList.toggle("best", k.m.cost < k.p.cost - 0.5);
+    $("#t-par")?.classList.toggle("best", k.p.cost < k.m.cost - 0.5);
+    set("split-l", `${Math.round(k.s * 100)} % mécénat · ${Math.round((1 - k.s) * 100)} % parrainage`);
+    set("c-mix", eur(k.mm.cost + k.pp.cost));
+    set("c-mix-s", `${eur(k.x * k.s)} de don (coût ${eur(k.mm.cost)}) + ${eur(k.x * (1 - k.s))} de parrainage (coût ${eur(k.pp.cost)})`);
+    const gap = Math.abs(k.p.cost - k.m.cost);
+    html("c-say", `Pour <b>${eur(k.x)}</b> versés au projet, votre coût réel est de <b>${eur(k.m.cost)}</b> en mécénat ou de <b>${eur(k.p.cost)}</b> en parrainage${gap >= 1 ? `, soit ${eur(gap)} d'écart` : ""}.`);
+    show("f-benef", k.o.regime === "ismix");
+    show("a-plaf-c", k.m.reportable > 0);
+    if (k.m.reportable > 0) set("a-plaf-c", `En mécénat, ${eur(k.m.reportable)} dépassent le plafond de l'année (${eur(k.m.plafond)}) : la réduction correspondante est reportée sur 5 ans, d'où un coût plus élevé la première année.`);
+  }
+}
+
+/* ═════════ écrans ═════════ */
+const regSelect = () => `<select data-k="regime" aria-label="Imposition de l'entreprise">${Object.entries(REG).map(([k, l]) => `<option value="${k}"${S.calc.regime === k ? " selected" : ""}>${l}</option>`).join("")}</select>`;
+const field = (k, label, opts = {}) => {
+  const u = opts.unit || "€", m = u === "%" ? 100 : 1;
+  return `<div class="row"><label for="i-${k}">${label}${opts.small ? `<small${opts.smallId ? ` id="${opts.smallId}"` : ""}>${opts.small}</small>` : ""}</label><input type="text" id="i-${k}" data-k="${k}" data-m="${m}" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${inVal(S.calc[k] * m)}"><span class="unit">${u}</span></div>`;
+};
+const amount = (k, label) => `<div class="amount"><label for="i-${k}">${label}</label>
+  <div class="f"><input class="amt" type="text" id="i-${k}" data-k="${k}" data-m="1" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${inVal(S.calc[k])}"><span class="eu">€</span></div>
+  <div class="chips" data-for="${k}">${[1000, 2500, 5000, 10000, 20000, 50000].map(v => `<button type="button" data-chip="${v}">${nb(v)}</button>`).join("")}</div></div>`;
+const hero = () => `<section class="hero" aria-live="polite"><div class="lab" id="h-lab"></div><div class="big" id="h-big"></div><div class="sub num" id="h-sub"></div><div class="bar" id="bar"></div><div class="legend num" id="legend"></div></section>`;
+const actions = kind => `<div class="btns"><button class="btn" data-share="${kind}">${I.share}Partager</button><button class="btn pri" data-save="${kind}">${I.save}Enregistrer</button></div>`;
+const seg = (k, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button type="button" data-seg="${k}" data-v="${v}" aria-pressed="${S.calc[k] === v}">${l}</button>`).join("")}</div>`;
+
+function vMec() {
+  const b = S.calc.mecMode === "budget";
+  return `<h1>Mécénat</h1><p class="lead">Réduction d'impôt de 60 % · art. 238 bis CGI</p>
+  ${hero()}
+  ${seg("mecMode", [["don", "Je connais le don"], ["budget", "Je connais le budget net"]])}
+  ${amount(b ? "mecBudget" : "mecDon", b ? "Coût réel accepté par l'entreprise" : "Montant du don")}
+  <h2>L'entreprise</h2>
+  <div class="group">
+    ${field("ca", "Chiffre d'affaires HT annuel", { small:"Fixe le plafond : 20 000 € ou 5 ‰ du CA" })}
+    ${field("contre", "Contreparties offertes", { small:" ", smallId:"ctr-info" })}
+  </div>
+  <div class="alert" id="a-plaf" hidden></div><div class="alert" id="a-ctr" hidden></div>
+  <h2>Détail</h2>
+  <div class="group detail"><div id="d-mec"></div></div>
+  ${actions("mec")}
+  <p class="foot">Le bénéficiaire doit être un organisme d'intérêt général (gestion désintéressée, activité non lucrative, pas de cercle restreint de personnes) : une association sportive peut l'être, une société sportive (SASP…) non. Il remet un reçu fiscal 2041-MEC-SD (Cerfa n° 16216). La réduction s'impute sur l'impôt de l'exercice ; le solde non utilisé est reportable 5 ans.</p>`;
+}
+function vPar() {
+  const b = S.calc.parMode === "budget";
+  return `<h1>Parrainage</h1><p class="lead">Charge déductible · art. 39-1-7° CGI</p>
+  ${hero()}
+  ${seg("parMode", [["mt", "Je connais le montant"], ["budget", "Je connais le budget net"]])}
+  ${amount(b ? "parBudget" : "parMt", b ? "Coût net accepté par l'entreprise" : "Montant du parrainage HT")}
+  <h2>L'entreprise</h2>
+  <div class="group">
+    <div class="row stack"><label>Imposition</label>${regSelect()}<small class="foot" style="margin:4px 0 0;display:block" id="reg-hint"></small></div>
+    <div id="f-benef" hidden>${field("benef", "Bénéfice imposable avant parrainage")}</div>
+    <div id="f-ir" hidden>
+      <div class="row"><label for="i-tmi">Tranche marginale d'imposition</label><select id="i-tmi" data-k="tmi" data-num="1">${[0, .11, .30, .41, .45].map(t => `<option value="${t}"${S.calc.tmi === t ? " selected" : ""}>${pct(t)}</option>`).join("")}</select></div>
+      ${field("soc", "Cotisations sociales évitées", { unit:"%", small:"Taux à demander à son comptable (0 si inconnu)" })}
+    </div>
+    <div class="row"><label for="i-tva">TVA facturée par le bénéficiaire<small>Récupérée par l'entreprise dans le cas général</small></label><select id="i-tva" data-k="tvaNR" data-bool="1"><option value="0"${!S.calc.tvaNR ? " selected" : ""}>Sans effet</option><option value="1"${S.calc.tvaNR ? " selected" : ""}>Non récupérable</option></select></div>
+  </div>
+  <div class="alert" id="a-micro" hidden>En micro-entreprise, l'impôt est calculé après un abattement forfaitaire : le parrainage ne fait baisser ni l'impôt ni les cotisations. Le coût net est égal au montant versé.</div>
+  <h2>Détail</h2>
+  <div class="group detail"><div id="d-par"></div></div>
+  ${actions("par")}
+  <p class="foot">Le parrainage est déductible s'il sert l'intérêt direct de l'entreprise (visibilité, image) et que les contreparties sont proportionnées au prix payé. Il n'ouvre pas de réduction d'impôt.</p>`;
+}
+function vCmp() {
+  return `<h1>Comparer</h1><p class="lead">La même somme en mécénat ou en parrainage</p>
+  ${amount("cmpMt", "Somme versée au projet")}
+  <div class="tiles">
+    <div class="tile" id="t-mec"><div class="k">Mécénat</div><div class="v" id="c-mec"></div><div class="s num" id="c-mec-s"></div><div class="badge">✓ Le moins cher</div></div>
+    <div class="tile" id="t-par"><div class="k">Parrainage</div><div class="v" id="c-par"></div><div class="s num" id="c-par-s"></div><div class="badge">✓ Le moins cher</div></div>
+  </div>
+  <div class="alert" id="a-plaf-c" hidden></div>
+  <h2>À dire au client</h2>
+  <div class="say" id="c-say"></div>
+  <h2>L'entreprise</h2>
+  <div class="group">
+    ${field("ca", "Chiffre d'affaires HT annuel")}
+    <div class="row stack"><label>Imposition</label>${regSelect()}</div>
+    <div id="f-benef" hidden>${field("benef", "Bénéfice imposable")}</div>
+  </div>
+  <h2>Montage mixte</h2>
+  <div class="group"><div class="row stack"><label for="i-split" id="split-l"></label><input type="range" id="i-split" data-k="split" min="0" max="100" step="5" value="${S.calc.split}"></div>
+    <div class="row"><span class="k">Coût total du montage<small class="num" id="c-mix-s"></small></span><span class="v strong num" id="c-mix"></span></div></div>
+  <p class="foot">Deux conventions distinctes : un don sans contrepartie significative d'un côté, un contrat de parrainage avec visibilité de l'autre. Jamais les deux sur la même somme.</p>
+  ${actions("cmp")}`;
+}
+const statuts = ["À présenter", "Présenté", "Accepté", "Refusé"];
+const pill = s => `<span class="pill s${Math.max(0, statuts.indexOf(s))}">${esc(s || statuts[0])}</span>`;
+const avatar = (it, cls = "") => it.img ? `<img class="logo ${cls}" src="${it.img}" alt="">` : `<div class="ini ${cls}">${esc((it.ti || "?").trim().slice(0, 1).toUpperCase())}</div>`;
+const TYPE = { mec:"Mécénat", par:"Parrainage", cmp:"Comparaison" };
+function vDos() {
+  const items = Object.entries(S.items).sort((a, b) => (b[1].updated || 0) - (a[1].updated || 0));
+  return `<h1>Dossiers</h1><p class="lead">Simulations enregistrées sur ce téléphone</p>
+  ${items.length ? `<label class="search">${I.search}<input type="search" id="q" placeholder="Rechercher une entreprise, un projet" autocomplete="off"></label>
+  <div class="group" id="dlist">${items.map(([id, it]) => `<button class="ditem" data-open="${esc(id)}" data-q="${esc(((it.ti || "") + " " + (it.projet || "") + " " + (it.note || "")).toLowerCase())}">
+    ${avatar(it)}<span class="t"><b>${esc(it.ti)}</b><span>${TYPE[it.type] || ""} · ${esc(it.sum?.sub || "")}</span></span>${pill(it.statut)}</button>`).join("")}</div>
+  <p class="foot" id="qnone" hidden>Aucun dossier ne correspond.</p>`
+  : `<div class="empty">Aucun dossier pour l'instant.<br>Faites un calcul, puis touchez <b>Enregistrer</b> pour le garder ici avec le nom de l'entreprise.</div>`}`;
+}
+function vSave() {
+  const p = S.pending; if (!p) { S.view = "dos"; return vDos(); }
+  return `<button class="back" data-go="${p.type}">${I.back}${TYPE[p.type]}</button>
+  <h1>Nouveau dossier</h1>
+  <section class="hero"><div class="lab">${esc(p.sum.label)}</div><div class="big">${esc(p.sum.big)}</div><div class="sub num">${esc(p.sum.sub)}</div></section>
+  <form id="saveform">
+    <div class="group">
+      <div class="row"><label for="s-ti">Entreprise</label><input type="text" id="s-ti" name="ti" placeholder="Obligatoire" required autocomplete="off" enterkeyhint="next" style="width:60%"></div>
+      <div class="row"><label for="s-pr">Projet ou club</label><input type="text" id="s-pr" name="projet" placeholder="Facultatif" autocomplete="off" style="width:60%"></div>
+      <div class="row"><label for="s-st">Statut</label><select id="s-st" name="statut">${statuts.map(s => `<option>${s}</option>`).join("")}</select></div>
+    </div>
+    <h2>Note</h2>
+    <div class="group"><textarea name="note" placeholder="Contact, prochaine étape…"></textarea></div>
+    <h2>Logo de l'entreprise (facultatif)</h2>
+    <div class="group"><div class="row">${fileBtn("draft", "Choisir une image")}<img id="draftpv" class="logo" src="${S.draftImg || ""}" alt="" ${S.draftImg ? "" : "hidden"}></div></div>
+    <div class="btns"><button type="button" class="btn" data-go="${p.type}">Annuler</button><button class="btn pri">Enregistrer</button></div>
+  </form>`;
+}
+function vDossier() {
+  const it = S.items[S.cur]; if (!it) { S.view = "dos"; return vDos(); }
+  return `<button class="back" data-go="dos">${I.back}Dossiers</button>
+  <div class="dhead"><span id="dlogo">${avatar(it)}</span><div><h1>${esc(it.ti)}</h1><div class="lead" style="margin:2px 0 0">${TYPE[it.type]} · ${dateFr(it.added || it.updated)}</div></div></div>
+  <section class="hero"><div class="lab">${esc(it.sum?.label)}</div><div class="big">${esc(it.sum?.big)}</div><div class="sub num">${esc(it.sum?.sub)}</div></section>
+  <div class="group">
+    <div class="row"><label for="e-ti">Entreprise</label><input type="text" id="e-ti" data-edit="ti" value="${esc(it.ti)}" autocomplete="off" style="width:60%"></div>
+    <div class="row"><label for="e-pr">Projet ou club</label><input type="text" id="e-pr" data-edit="projet" value="${esc(it.projet)}" placeholder="Facultatif" autocomplete="off" style="width:60%"></div>
+    <div class="row"><label for="e-st">Statut</label><select id="e-st" data-edit="statut">${statuts.map(s => `<option${s === it.statut ? " selected" : ""}>${s}</option>`).join("")}</select></div>
+  </div>
+  <h2>Note</h2>
+  <div class="group"><textarea data-edit="note" placeholder="Contact, prochaine étape…">${esc(it.note)}</textarea></div>
+  <h2>Logo</h2>
+  <div class="group"><div class="row">${fileBtn(S.cur, it.img ? "Changer le logo" : "Ajouter un logo")}${it.img ? `<button class="btn sm danger" data-noimg="${esc(S.cur)}">Retirer</button>` : ""}</div></div>
+  <div class="btns">
+    <button class="btn full pri" data-load="${esc(S.cur)}">Ouvrir dans le calculateur</button>
+    <button class="btn" data-dshare="${esc(S.cur)}">${I.share}Partager</button>
+    <button class="btn danger" data-del="${esc(S.cur)}">${S.delArm === S.cur ? "Confirmer ?" : "Supprimer"}</button>
+  </div>
+  <p class="foot">Calculé avec les ${esc(it.ratesLabel || "taux de l'époque")}. « Ouvrir dans le calculateur » refait le calcul avec les taux actuels.</p>`;
+}
+const RATE_F = [["r1", "Mécénat : taux de réduction", 100, "%"], ["r2", "Mécénat au-delà du seuil", 100, "%"], ["thr", "Seuil de 60 % à 40 %", 1, "€"], ["floor", "Plafond minimal", 1, "€"],
+  ["caRatio", "Plafond en part du CA HT", 1000, "‰"], ["ctr", "Contreparties admises", 100, "%"], ["isn", "IS taux normal", 100, "%"], ["isr", "IS taux réduit PME", 100, "%"], ["iscap", "Plafond du taux réduit IS", 1, "€"], ["tva", "TVA", 100, "%"]];
+const rateTxt = (v, m) => m === 1 ? nb(v) : String(round2(v * m)).replace(".", ",");
+function vSet() {
+  const P = rates(), th = lsGet(CONFIG.key + ":theme") || "auto";
+  const st = !GH.token ? "Jeton manquant" : SYNC.busy ? "Synchronisation…" : SYNC.err || (SYNC.last ? `Dernière synchro : ${new Date(SYNC.last).toLocaleString("fr-FR")}` : "Pas encore synchronisé");
+  return `<h1>Réglages</h1>
+  <h2>Apparence</h2>
+  <div class="seg">${[["auto", "Automatique"], ["light", "Clair"], ["dark", "Sombre"]].map(([v, l]) => `<button type="button" data-theme="${v}" aria-pressed="${th === v}">${l}</button>`).join("")}</div>
+  <h2>Taux utilisés</h2>
+  <div class="group">
+    <div class="row"><span class="k">Taux légaux vérifiés le<small>Source : ${esc(S.pubSrc)}</small></span><span class="v strong">${esc(S.pub.verifie || S.pub.updated)}</span></div>
+    <div class="row"><label for="ovr">Personnaliser sur ce téléphone<small>Si la loi change avant ma mise à jour</small></label><input type="checkbox" class="switch" id="ovr" ${S.ovr.on ? "checked" : ""}></div>
+    ${RATE_F.map(([k, l, m, u]) => S.ovr.on
+      ? `<div class="row"><label for="r-${k}">${l}</label><input type="text" class="rate num" id="r-${k}" data-rate="${k}" data-m="${m}" inputmode="decimal" value="${rateTxt(P[k], m)}"><span class="unit">${u}</span></div>`
+      : `<div class="row"><span class="k">${l}</span><span class="v num">${rateTxt(P[k], m)} ${u}</span></div>`).join("")}
+  </div>
+  ${S.ovr.on ? `<div class="btns"><button class="btn full" id="ovr-reset">Revenir aux taux publiés</button></div>` : ""}
+  ${(S.pub.notes || []).length ? `<h2>Actualité fiscale</h2><div class="group">${S.pub.notes.map(n => `<div class="row"><span class="k" style="font-size:15px">${esc(n)}</span></div>`).join("")}</div>` : ""}
+  ${(S.pub.sources || []).length ? `<h2>Sources</h2><div class="group">${S.pub.sources.map(s => `<a class="row" style="color:var(--acc);text-decoration:none;font-size:15px" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.ti)}</a>`).join("")}</div>` : ""}
+  <h2>Sauvegarde des dossiers</h2>
+  <div class="btns" style="margin-top:0"><button class="btn" id="exp">Exporter</button>
+    <label class="btn filebtn" tabindex="0" role="button">Importer<input type="file" accept="application/json,.json" class="vh-file" id="imp" tabindex="-1"></label></div>
+  <p class="foot">Un fichier JSON est enregistré dans vos téléchargements. À faire avant de changer de téléphone ou de vider Firefox.</p>
+  <h2>Synchronisation entre appareils (facultatif)</h2>
+  <div class="group">
+    <input type="password" id="tok" placeholder="Jeton GitHub (github_pat_…)" value="${esc(GH.token)}" autocomplete="off">
+  </div>
+  <div class="btns"><button class="btn" id="savetok">Enregistrer le jeton</button><button class="btn" id="syncnow">Synchroniser</button></div>
+  <p class="foot">Copie vos dossiers dans le dépôt GitHub privé <b>${esc(CONFIG.gh.privateRepo)}</b>. ${esc(st)}</p>
+  <h2>Mentions légales</h2>
+  <div class="group"><div class="row"><span class="k" style="font-size:15px;line-height:20px">Éditeur : Bastien Vidal EI – Partenarium, SIREN 132 437 542, 2 avenue du Docteur Jacques Arnaud, A24, 74300 Cluses · contact@partenarium.fr. Directeur de la publication : Bastien Vidal.<br>Hébergeur : GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.<br>Aucune donnée n'est collectée : les simulations et dossiers restent sur l'appareil.</span></div></div>
+  <p class="foot">Simulation indicative : elle ne remplace pas l'avis de l'expert-comptable de l'entreprise.<br>${esc(CONFIG.name)} · version ${esc(CONFIG.version)} · Police Inter (licence SIL OFL)</p>`;
+}
+function render() {
+  const v0 = S.view;
+  $("#app").innerHTML = v0 === "par" ? vPar() : v0 === "cmp" ? vCmp() : v0 === "dos" ? vDos() : v0 === "save" ? vSave() : v0 === "dossier" ? vDossier() : v0 === "set" ? vSet() : vMec();
+  const v = S.view; // un écran peut se rabattre sur la liste (dossier supprimé, etc.)
+  const tab = { save: S.pending?.type, dossier: "dos" }[v] || v;
+  document.querySelectorAll("nav [data-go]").forEach(b => b.setAttribute("aria-current", b.dataset.go === tab));
+  if (["mec", "par", "cmp"].includes(v)) lsSet(CONFIG.key + ":view", v);
+  update();
+}
+function go(v, push = true) {
+  if (v !== "dossier") S.delArm = null;
+  S.view = v; render(); scrollTo(0, 0);
+  if (push) { try { history.pushState({ v, cur:S.cur }, ""); } catch {} }
+}
+window.addEventListener("popstate", e => { const st = e.state || { v:"mec" }; S.cur = st.cur || S.cur; S.view = st.v; render(); });
+
+/* ═════════ saisies ═════════ */
+function saveCalc() { save("calc"); }
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.k && t.type !== "select-one") {
+    S.calc[t.dataset.k] = t.type === "range" ? +t.value : num(t.value) / (+t.dataset.m || 1);
+    saveCalc(); update(); return;
+  }
+  if (t.dataset.rate) { S.ovr.taux = { ...rates(), ...S.ovr.taux, [t.dataset.rate]: num(t.value) / (+t.dataset.m || 1) }; save("ovr"); return; }
+  if (t.dataset.edit && S.items[S.cur]) { // édition d'un dossier : enregistrement sans re-dessiner l'écran
+    const it = { ...S.items[S.cur], [t.dataset.edit]: t.value };
+    if (t.dataset.edit === "ti" && !it.ti.trim()) return;
+    putItem(S.cur, it); return;
+  }
+  if (t.id === "q") {
+    const q = t.value.trim().toLowerCase(); let n = 0;
+    document.querySelectorAll("#dlist .ditem").forEach(b => { const ok = !q || b.dataset.q.includes(q); b.hidden = !ok; n += ok; });
+    show("qnone", n === 0);
+  }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.tagName === "SELECT" && t.dataset.k) {
+    S.calc[t.dataset.k] = t.dataset.num ? +t.value : t.dataset.bool ? t.value === "1" : t.value;
+    document.querySelectorAll(`select[data-k="${t.dataset.k}"]`).forEach(s => { if (s !== t) s.value = t.value; });
+    saveCalc(); update(); return;
+  }
+  if (t.id === "ovr") { S.ovr.on = t.checked; if (t.checked && !Object.keys(S.ovr.taux).length) S.ovr.taux = { ...rates() }; save("ovr"); render(); toast(t.checked ? "Taux personnalisés activés." : "Taux publiés rétablis."); }
+  if (t.id === "imp" && t.files[0]) { importData(t.files[0]); t.value = ""; }
+  if (t instanceof HTMLInputElement && t.type === "file" && t.dataset.img) { processImage(t.files && t.files[0], t.dataset.img); t.value = ""; }
+});
+// mise en forme des montants à la sortie du champ (pas pendant la frappe : le curseur sauterait)
+document.addEventListener("focusout", e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.k && t.type === "text") t.value = inVal(S.calc[t.dataset.k] * (+t.dataset.m || 1));
+  if (t.dataset && t.dataset.rate) t.value = rateTxt(rates()[t.dataset.rate], +t.dataset.m);
+  if (t.dataset && t.dataset.rate) update();
+});
+// au toucher d'un montant, tout est sélectionné : la frappe remplace la valeur (sauf si la saisie a déjà commencé)
+document.addEventListener("focusin", e => { const t = e.target; if (t.matches && t.matches("input.amt, .row input[data-k], input.rate")) { const v0 = t.value; setTimeout(() => { if (t.value === v0) try { t.select(); } catch {} }, 0); } });
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.matches && e.target.matches("input[data-k], input.rate")) { e.preventDefault(); e.target.blur(); }
+  const l = e.target.closest && e.target.closest("label.filebtn"); // accessibilité clavier des labels-boutons
+  if (l && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); l.querySelector("input[type=file]")?.click(); }
+});
+
+/* ═════════ partage ═════════ */
+async function shareText(title, text) {
+  if (navigator.share) { try { await navigator.share({ title, text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  try { await navigator.clipboard.writeText(text); toast("Résumé copié : collez-le dans un SMS ou un mail."); }
+  catch { toast("Copie impossible sur ce navigateur."); }
+}
+
+/* ═════════ clics ═════════ */
+document.addEventListener("click", e => {
+  const el = e.target.closest("button, a, [data-open]"); if (!el) return;
+  const d = el.dataset;
+  if (d.go) { if (d.go === "dos" || d.go !== S.view) go(d.go); return; }
+  if (d.seg) { // contrôle segmenté : on garde des valeurs cohérentes entre les deux modes
+    const k = d.seg, v = d.v, c = S.calc;
+    if (k === "mecMode" && c.mecMode !== v) { const { r } = calcMec(); if (v === "budget") c.mecBudget = Math.round(r.cost); else c.mecDon = r.don; }
+    if (k === "parMode" && c.parMode !== v) { const { r } = calcPar(); if (v === "budget") c.parBudget = Math.round(r.cost); else c.parMt = r.ht; }
+    c[k] = v; saveCalc(); render(); return;
+  }
+  if (d.chip) {
+    const box = el.closest(".chips"), k = box.dataset.for;
+    S.calc[k] = +d.chip; const i = document.getElementById("i-" + k); if (i) i.value = inVal(S.calc[k]);
+    saveCalc(); update(); return;
+  }
+  if (d.share) { shareText("Simulation Partenarium", summary(d.share).t); return; }
+  if (d.save) { const sm = summary(d.save); S.pending = { type:d.save, calc:{ ...S.calc }, sum:{ label:sm.label, big:sm.big, sub:sm.sub }, txt:sm.t }; S.draftImg = null; go("save"); setTimeout(() => $("#s-ti")?.focus(), 50); return; }
+  if (d.open) { S.cur = d.open; go("dossier"); return; }
+  if (d.dshare) { const it = S.items[d.dshare]; if (it) shareText(it.ti, `${it.ti}${it.projet ? " — " + it.projet : ""}\n${it.txt || ""}`); return; }
+  if (d.load) { const it = S.items[d.load]; if (it) { S.calc = { ...CALC0, ...S.calc, ...it.calc }; saveCalc(); go(it.type); toast("Calcul rouvert avec les taux actuels."); } return; }
+  if (d.noimg) { const it = S.items[d.noimg]; if (it) { putItem(d.noimg, { ...it, img:null }); render(); } return; }
+  if (d.del) {
+    if (S.delArm !== d.del) { S.delArm = d.del; el.textContent = "Confirmer ?"; return; }
+    putItem(d.del, null); S.delArm = null; toast("Dossier supprimé."); go("dos"); return;
+  }
+  if (d.theme) { setTheme(d.theme); document.querySelectorAll("button[data-theme]").forEach(b => b.setAttribute("aria-pressed", b.dataset.theme === d.theme)); return; }
+  if (el.id === "ovr-reset") { S.ovr = { on:false, taux:{} }; save("ovr"); render(); toast("Taux publiés rétablis."); return; }
+  if (el.id === "exp") { exportData(); return; }
+  if (el.id === "savetok") { GH.token = $("#tok").value.trim(); lsSet(CONFIG.key + ":gh", GH.token); SYNC.err = ""; toast("Jeton enregistré."); syncNow(true); return; }
+  if (el.id === "syncnow") { syncNow(true); return; }
+});
+document.addEventListener("submit", e => {
+  if (e.target.id !== "saveform") return; e.preventDefault();
+  const f = new FormData(e.target), ti = String(f.get("ti") || "").trim(), p = S.pending;
+  if (!ti || !p) { toast("Indiquez le nom de l'entreprise."); return; }
+  const id = uid();
+  putItem(id, { ti, projet:String(f.get("projet") || "").trim(), statut:String(f.get("statut") || statuts[0]), note:String(f.get("note") || "").trim(),
+    img:S.draftImg || null, type:p.type, calc:p.calc, sum:p.sum, txt:p.txt, P:rates(), ratesLabel:ratesLabel(), added:Date.now() });
+  S.pending = null; S.draftImg = null; S.cur = id; toast("Dossier enregistré."); go("dossier");
+});
+
+/* ═════════ thème ═════════ */
+function setTheme(t) {
+  lsSet(CONFIG.key + ":theme", t);
+  if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.dataset.theme = t;
+  const dark = t === "dark" || (t === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelector('meta[name="theme-color"]').content = dark ? "#000000" : "#F2F2F7";
+}
+setTheme(lsGet(CONFIG.key + ":theme") || "auto");
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => setTheme(lsGet(CONFIG.key + ":theme") || "auto"));
+
+/* ═════════ import d'image (logo, depuis la galerie ou l'appareil photo) ═════════ */
+async function processImage(file, target) {
+  if (!file) return;
+  if (/heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name || "")) { toast("Format HEIC non lu par le navigateur : choisissez une image JPEG ou PNG."); return; }
+  if (file.type && !file.type.startsWith("image/")) { toast("Ce fichier n'est pas une image."); return; }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const W = 256, c = document.createElement("canvas"); c.width = W; c.height = W;
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, W, W);
+    const s = Math.min((W - 24) / img.naturalWidth, (W - 24) / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
+    g.drawImage(img, (W - w) / 2, (W - h) / 2, w, h); // logo entier, centré sur fond blanc
+    const data = c.toDataURL("image/jpeg", 0.85); // quelques Ko
+    if (target === "draft") { S.draftImg = data; const pv = $("#draftpv"); if (pv) { pv.src = data; pv.hidden = false; } } // pas de render() : on garderait le texte tapé
+    else if (S.items[target]) { putItem(target, { ...S.items[target], img:data }); const box = $("#dlogo"); if (box) box.innerHTML = avatar(S.items[target]); }
+    toast("Image enregistrée.");
+  } catch { toast("Image illisible."); }
+  finally { URL.revokeObjectURL(url); }
+}
+const fileBtn = (target, label) => `<label class="btn sm filebtn" tabindex="0" role="button">${label}<input type="file" accept="image/*" class="vh-file" data-img="${esc(target)}" tabindex="-1"></label>`;
+
+/* ═════════ sauvegarde manuelle (fichier JSON) ═════════ */
+function exportData() {
+  const blob = new Blob([JSON.stringify({ app:CONFIG.key, version:CONFIG.version, exported:new Date().toISOString(), items:S.items, del:S.del })], { type:"application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `${CONFIG.key}-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast("Sauvegarde enregistrée dans vos téléchargements.");
+}
+async function importData(file) {
+  try {
+    const d = JSON.parse(await file.text());
+    if (!d || typeof d.items !== "object") throw 0;
+    let n = 0;
+    for (const [id, it] of Object.entries(d.items || {})) { const cur = S.items[id]; if (!cur || (it.updated || 0) >= (cur.updated || 0)) { S.items[id] = it; delete S.del[id]; n++; } }
+    save("items"); save("del"); syncSoon(); render(); toast(`${n} dossier(s) importé(s).`);
+  } catch { toast("Ce fichier n'est pas une sauvegarde valide."); }
+}
+
+/* ═════════ synchronisation facultative entre appareils : dépôt GitHub PRIVÉ ═════════
+   Jeton « fine-grained » limité à ce dépôt, permission Contents en lecture/écriture.
+   Le jeton reste dans le navigateur du téléphone (localStorage), jamais dans le code. */
+const GH = { token: lsGet(CONFIG.key + ":gh") || "" };
+const SYNC = { busy:false, last: lsGet(CONFIG.key + ":lastsync") || 0, err:"", dirty:false };
+let syncT;
+function syncSoon() { SYNC.dirty = true; clearTimeout(syncT); syncT = setTimeout(syncNow, 5000); }
+async function gh(path, opts = {}, raw) {
+  const res = await fetch(`https://api.github.com/repos/${CONFIG.gh.owner}/${CONFIG.gh.privateRepo}${path}`, {
+    ...opts, cache:"no-store",
+    headers:{ "Accept": raw ? "application/vnd.github.raw+json" : "application/vnd.github+json", "Authorization":`Bearer ${GH.token}`, "X-GitHub-Api-Version":"2022-11-28", ...(opts.body ? { "Content-Type":"application/json" } : {}) }
+  });
+  if (!res.ok) { const err = new Error("gh"); err.status = res.status; throw err; }
+  return raw ? res.text() : res.json();
+}
+function b64(str) { const b = new TextEncoder().encode(str); let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+async function getRemote(path) {
+  let meta; try { meta = await gh(`/contents/${path}`); } catch (e) { if (e.status === 404) return { data:null, sha:null }; throw e; }
+  let data = null; try { data = JSON.parse(await gh(`/contents/${path}`, {}, true)); } catch {}
+  return { data, sha:meta.sha };
+}
+function putRemote(path, obj, sha) {
+  const body = { message:`${CONFIG.name} : synchronisation`, content:b64(JSON.stringify(obj)) }; if (sha) body.sha = sha;
+  return gh(`/contents/${path}`, { method:"PUT", body:JSON.stringify(body) });
+}
+/* Fusion : pour chaque dossier, la version la plus récente gagne ; une suppression plus récente l'emporte. */
+function merge(local, remote, ldel, rdel, flags) {
+  const out = {}, del = {};
+  for (const id of new Set([...Object.keys(local), ...Object.keys(remote), ...Object.keys(ldel), ...Object.keys(rdel)])) {
+    const l = local[id], r = remote[id], d = Math.max(ldel[id] || 0, rdel[id] || 0);
+    const best = (l?.updated || 0) >= (r?.updated || 0) ? (l || r) : r;
+    if (best && (best.updated || 0) >= d) out[id] = best; else if (d) del[id] = d;
+    if (out[id] !== l || (del[id] || 0) !== (ldel[id] || 0)) flags.local = true;
+    if (out[id] !== r || (del[id] || 0) !== (rdel[id] || 0)) flags.remote = true;
+  }
+  return { out, del };
+}
+async function syncNow(manual, retry) {
+  if (!GH.token || !navigator.onLine || SYNC.busy) { if (manual && !GH.token) toast("Ajoutez d'abord votre jeton GitHub."); return; }
+  SYNC.busy = true; SYNC.err = "";
+  try {
+    const rem = await getRemote("donnees.json"), R = rem.data || {}, fl = { local:false, remote:!rem.sha };
+    const m = merge(S.items, R.items || {}, S.del, R.del || {}, fl);
+    if (fl.local) { S.items = m.out; S.del = m.del; save("items"); save("del"); if (!isTyping() && ["dos", "dossier"].includes(S.view)) render(); }
+    if (fl.remote || SYNC.dirty) await putRemote("donnees.json", { v:1, updated:Date.now(), items:m.out, del:m.del }, rem.sha);
+    SYNC.dirty = false; SYNC.last = Date.now(); lsSet(CONFIG.key + ":lastsync", SYNC.last);
+    if (manual) toast("Synchronisé.");
+  } catch (e) {
+    SYNC.busy = false;
+    if ((e.status === 409 || e.status === 422) && !retry) return syncNow(manual, true); // conflit : on relit et on refusionne
+    SYNC.err = e.status === 404 ? "Dépôt privé introuvable, ou le jeton n'y a pas accès." : (e.status === 401 || e.status === 403) ? "Jeton invalide ou sans la permission Contents (lecture et écriture)." : "Synchronisation impossible pour le moment.";
+    if (manual) toast(SYNC.err);
+  }
+  SYNC.busy = false; if (S.view === "set" && !isTyping()) render();
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && Date.now() - SYNC.last > 60000) syncNow(); });
+
+/* ═════════ démarrage ═════════ */
+async function boot() {
+  const [items, del, pub, calc, ovr] = await Promise.all(["items", "del", "pub", "calc", "ovr"].map(k => store.get(k)));
+  S.items = items || {}; S.del = del || {};
+  if (pub && pub.taux) { S.pub = pub; S.pubSrc = "copie locale"; }
+  S.calc = { ...CALC0, ...(calc || {}) };
+  if (ovr) S.ovr = ovr;
+  if (!["mec", "par", "cmp", "dos", "set"].includes(S.view)) S.view = "mec";
+  try { history.replaceState({ v:S.view }, ""); } catch {}
+  render();
+  loadPublic();
+  syncNow();
+  if ("serviceWorker" in navigator) {
+    try {
+      const hadController = !!navigator.serviceWorker.controller;
+      const reg = await navigator.serviceWorker.register("./sw.js");
+      reg.update && reg.update(); // vérifie tout de suite s'il existe une nouvelle version
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        // nouvelle version installée : recharge une fois (sauf premier lancement ou saisie en cours)
+        if (!hadController || reloaded) return; reloaded = true;
+        if (!isTyping()) location.reload();
+      });
+    } catch {}
+  }
+  // demande au navigateur de ne pas effacer les données en cas de manque de place
+  if (navigator.storage && navigator.storage.persist) { try { navigator.storage.persist(); } catch {} }
+}
+boot();
+})();
+</script>
+</body>
+</html>
