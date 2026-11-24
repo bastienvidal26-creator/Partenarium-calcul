@@ -1,7 +1,7 @@
 /* Service worker : rend l'application utilisable hors ligne.
    À CHAQUE MISE EN LIGNE, change VERSION (ex. partcalc-1.0.1) ET CONFIG.version dans index.html :
    c'est ce qui déclenche la mise à jour sur le téléphone. */
-const VERSION = "partcalc-1.0.0";
+const VERSION = "partcalc-1.0.1";
 
 // Fichiers de « coquille » mis en cache à l'installation (tout ce qu'il faut pour démarrer sans réseau).
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./data/taux.json", "./fonts/inter.woff2",
