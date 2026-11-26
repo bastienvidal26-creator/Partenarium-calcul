@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Partenarium">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Partenarium – Calculateur</title>
+<title>Partenarium - Calculateur</title>
 <script>/* iPhone, iPad, Mac : police du système (SF Pro). Ailleurs (Android) : Inter, embarquée. */
 if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) document.documentElement.classList.add("apple");</script>
 <style>
@@ -243,9 +243,9 @@ if (typeof module !== "undefined") module.exports = { DEFAULTS, mecenat, isTax, 
 "use strict";
 /* ═════════ CONFIGURATION ═════════ */
 const CONFIG = {
-  name: "Partenarium – Calculateur",
+  name: "Partenarium - Calculateur",
   key: "partcalc",               // préfixe de stockage local (unique pour cette application)
-  version: "1.0.1",              // à garder identique à VERSION dans sw.js (partcalc-1.0.1)
+  version: "1.0.2",              // à garder identique à VERSION dans sw.js (partcalc-1.0.2)
   gh: { owner: "bastienvidal26-creator", privateRepo: "partenarium-calcul-perso" }
 };
 /* Taux intégrés (copie de data/taux.json), utilisés au tout premier lancement hors ligne */
@@ -312,10 +312,13 @@ const CALC0 = { mecMode:"don", mecDon:10000, mecBudget:4000, ca:1000000, contre:
 const S = { items:{}, del:{}, pub:PUB0, pubSrc:"intégrés à l'application", calc:{ ...CALC0 }, ovr:{ on:false, taux:{} },
   view: lsGet(CONFIG.key + ":view") || "mec", cur:null, pending:null, draftImg:null, delArm:null };
 const saveT = {};
+/* Règle de forme (Bastien, 26/11/2026) : aucun tiret long ni demi-long (U+2010 à U+2015) ni signe moins U+2212, seul le tiret du clavier « - ». */
+const noDash = s => typeof s === "string" ? s.replace(/[\u2010-\u2015\u2212]/g, "-") : s;
+function cleanDeep(x) { if (typeof x === "string") return noDash(x); if (Array.isArray(x)) { for (let i = 0; i < x.length; i++) x[i] = cleanDeep(x[i]); return x; } if (x && typeof x === "object") { for (const k of Object.keys(x)) x[k] = cleanDeep(x[k]); return x; } return x; }
 function save(key) { clearTimeout(saveT[key]); saveT[key] = setTimeout(() => store.set(key, S[key]), 250); }
 function putItem(id, data) {
   if (data === null) { delete S.items[id]; S.del[id] = Date.now(); }
-  else { data.updated = Date.now(); S.items[id] = data; delete S.del[id]; }
+  else { cleanDeep(data); data.updated = Date.now(); S.items[id] = data; delete S.del[id]; }
   save("items"); save("del"); syncSoon();
 }
 /* Taux en vigueur dans l'app : intégrés < publiés (data/taux.json) < personnalisés (Réglages) */
@@ -355,13 +358,13 @@ const SIGN = P => `Simulation indicative Partenarium (${ratesLabel()}), à confi
 function summary(kind) {
   if (kind === "mec") {
     const { P, r } = calcMec();
-    let t = `Mécénat — don de ${eur(r.don)} à un organisme d'intérêt général\nRéduction d'impôt : ${eur(r.reduction)} (${pct(P.r1)}, art. 238 bis CGI)\nCoût réel pour l'entreprise : ${eur(r.cost)}`;
+    let t = `Mécénat - don de ${eur(r.don)} à un organisme d'intérêt général\nRéduction d'impôt : ${eur(r.reduction)} (${pct(P.r1)}, art. 238 bis CGI)\nCoût réel pour l'entreprise : ${eur(r.cost)}`;
     if (r.reportable > 0) t += `\nPlafond de l'année : ${eur(r.plafond)} ; réduction reportable sur 5 ans : ${eur(r.reductionReport)} (coût final ${eur(r.costApresReport)})`;
     return { t: t + "\n" + SIGN(P), label:"Coût réel", big:eur(r.cost), sub:`Don ${eur(r.don)} · réduction ${eur(r.reduction)}`, amount:r.don };
   }
   if (kind === "par") {
     const { P, o, r } = calcPar();
-    let t = `Parrainage — ${eur(r.ht)} HT${o.tvaNR ? ` + TVA non récupérable ${eur(r.tvaNR)}` : ""}\nCharge déductible (art. 39-1-7° CGI) · ${REG[o.regime]}\nÉconomie d'impôt : ${eur(r.saving)}\nCoût net pour l'entreprise : ${eur(r.cost)}`;
+    let t = `Parrainage - ${eur(r.ht)} HT${o.tvaNR ? ` + TVA non récupérable ${eur(r.tvaNR)}` : ""}\nCharge déductible (art. 39-1-7° CGI) · ${REG[o.regime]}\nÉconomie d'impôt : ${eur(r.saving)}\nCoût net pour l'entreprise : ${eur(r.cost)}`;
     return { t: t + "\n" + SIGN(P), label:"Coût net", big:eur(r.cost), sub:`Parrainage ${eur(r.ht)} HT · économie ${eur(r.saving)}`, amount:r.ht };
   }
   const k = calcCmp();
@@ -384,7 +387,7 @@ function update() {
   if (v === "mec") {
     const { P, r } = calcMec();
     if (c.mecMode === "budget") { set("h-lab", "Don possible pour ce budget"); set("h-big", eur(r.don)); set("h-sub", `Réduction d'impôt ${eur(r.reduction)} · coût réel ${eur(r.cost)}`); }
-    else { set("h-lab", "Coût réel pour l'entreprise"); set("h-big", eur(r.cost)); set("h-sub", `Don ${eur(r.don)} − réduction d'impôt ${eur(r.reduction)}`); }
+    else { set("h-lab", "Coût réel pour l'entreprise"); set("h-big", eur(r.cost)); set("h-sub", `Don ${eur(r.don)} - réduction d'impôt ${eur(r.reduction)}`); }
     bar([[r.cost, "c", "Coût réel", "#fff"], [r.reduction, "r", "Réduction d'impôt", "#34C759"]]);
     show("a-plaf", r.reportable > 0);
     if (r.reportable > 0) set("a-plaf", `Plafond de l'année : ${eur(r.plafond)} (${eur(P.floor)} ou ${String(P.caRatio * 1000).replace(".", ",")} ‰ du CA HT). Les ${eur(r.reportable)} au-delà ouvrent une réduction de ${eur(r.reductionReport)}, reportable sur les 5 exercices suivants. Coût final si le report est utilisé : ${eur(r.costApresReport)}.`);
@@ -396,14 +399,14 @@ function update() {
       ["Don versé", eur(r.don)],
       ["Plafond de l'année", eur(r.plafond)],
       ["Don retenu cette année", eur(r.retenu)],
-      [`Réduction d'impôt (${pct(P.r1)}${r.retenu > P.thr ? `, puis ${pct(P.r2)}` : ""})`, "− " + eur(r.reduction)],
+      [`Réduction d'impôt (${pct(P.r1)}${r.retenu > P.thr ? `, puis ${pct(P.r2)}` : ""})`, "- " + eur(r.reduction)],
       ["Coût réel cette année", eur(r.cost), true],
       ...(r.reportable > 0 ? [["Réduction reportable (5 ans)", eur(r.reductionReport)], ["Coût final après report", eur(r.costApresReport), true]] : [])
     ]));
   } else if (v === "par") {
     const { o, r } = calcPar();
     if (c.parMode === "budget") { set("h-lab", "Parrainage possible pour ce budget"); set("h-big", eur(r.ht)); set("h-sub", `HT · économie d'impôt ${eur(r.saving)} · coût net ${eur(r.cost)}`); }
-    else { set("h-lab", "Coût net pour l'entreprise"); set("h-big", eur(r.cost)); set("h-sub", `Parrainage ${eur(r.ht)} HT − économie d'impôt ${eur(r.saving)}`); }
+    else { set("h-lab", "Coût net pour l'entreprise"); set("h-big", eur(r.cost)); set("h-sub", `Parrainage ${eur(r.ht)} HT - économie d'impôt ${eur(r.saving)}`); }
     bar([[r.cost, "c", "Coût net", "#fff"], [r.saving, "r", "Économie d'impôt", "#34C759"]]);
     show("f-benef", o.regime === "ismix"); show("f-ir", o.regime === "ir");
     show("a-micro", o.regime === "micro");
@@ -412,7 +415,7 @@ function update() {
       ["Montant HT", eur(r.ht)],
       ...(o.tvaNR ? [["TVA non récupérable", eur(r.tvaNR)]] : []),
       ["Charge déductible", eur(r.base)],
-      [`Économie d'impôt (${pct(r.taux)} effectif)`, "− " + eur(r.saving)],
+      [`Économie d'impôt (${pct(r.taux)} effectif)`, "- " + eur(r.saving)],
       ["Coût net", eur(r.cost), true]
     ]));
   } else if (v === "cmp") {
@@ -589,7 +592,7 @@ function vSet() {
   <div class="btns"><button class="btn" id="savetok">Enregistrer le jeton</button><button class="btn" id="syncnow">Synchroniser</button></div>
   <p class="foot">Copie vos dossiers dans le dépôt GitHub privé <b>${esc(CONFIG.gh.privateRepo)}</b>. ${esc(st)}</p>
   <h2>Mentions légales</h2>
-  <div class="group"><div class="row"><span class="k" style="font-size:15px;line-height:20px">Éditeur : Bastien Vidal EI – Partenarium, SIREN 132 437 542, 2 avenue du Docteur Jacques Arnaud, A24, 74300 Cluses · contact@partenarium.fr. Directeur de la publication : Bastien Vidal.<br>Hébergeur : GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.<br>Aucune donnée n'est collectée : les simulations et dossiers restent sur l'appareil.</span></div></div>
+  <div class="group"><div class="row"><span class="k" style="font-size:15px;line-height:20px">Éditeur : Bastien Vidal EI - Partenarium, SIREN 132 437 542, 2 avenue du Docteur Jacques Arnaud, A24, 74300 Cluses · contact@partenarium.fr. Directeur de la publication : Bastien Vidal.<br>Hébergeur : GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.<br>Aucune donnée n'est collectée : les simulations et dossiers restent sur l'appareil.</span></div></div>
   <p class="foot">Simulation indicative : elle ne remplace pas l'avis de l'expert-comptable de l'entreprise.<br>${esc(CONFIG.name)} · version ${esc(CONFIG.version)} · Police Inter (licence SIL OFL)</p>`;
 }
 function render() {
@@ -656,6 +659,7 @@ document.addEventListener("keydown", e => {
 
 /* ═════════ partage ═════════ */
 async function shareText(title, text) {
+  title = noDash(title); text = noDash(text);
   if (navigator.share) { try { await navigator.share({ title, text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
   try { await navigator.clipboard.writeText(text); toast("Résumé copié : collez-le dans un SMS ou un mail."); }
   catch { toast("Copie impossible sur ce navigateur."); }
@@ -680,7 +684,7 @@ document.addEventListener("click", e => {
   if (d.share) { shareText("Simulation Partenarium", summary(d.share).t); return; }
   if (d.save) { const sm = summary(d.save); S.pending = { type:d.save, calc:{ ...S.calc }, sum:{ label:sm.label, big:sm.big, sub:sm.sub }, txt:sm.t }; S.draftImg = null; go("save"); setTimeout(() => $("#s-ti")?.focus(), 50); return; }
   if (d.open) { S.cur = d.open; go("dossier"); return; }
-  if (d.dshare) { const it = S.items[d.dshare]; if (it) shareText(it.ti, `${it.ti}${it.projet ? " — " + it.projet : ""}\n${it.txt || ""}`); return; }
+  if (d.dshare) { const it = S.items[d.dshare]; if (it) shareText(it.ti, `${it.ti}${it.projet ? " - " + it.projet : ""}\n${it.txt || ""}`); return; }
   if (d.load) { const it = S.items[d.load]; if (it) { S.calc = { ...CALC0, ...S.calc, ...it.calc }; saveCalc(); go(it.type); toast("Calcul rouvert avec les taux actuels."); } return; }
   if (d.noimg) { const it = S.items[d.noimg]; if (it) { putItem(d.noimg, { ...it, img:null }); render(); } return; }
   if (d.del) {
@@ -747,7 +751,7 @@ async function importData(file) {
     const d = JSON.parse(await file.text());
     if (!d || typeof d.items !== "object") throw 0;
     let n = 0;
-    for (const [id, it] of Object.entries(d.items || {})) { const cur = S.items[id]; if (!cur || (it.updated || 0) >= (cur.updated || 0)) { S.items[id] = it; delete S.del[id]; n++; } }
+    for (const [id, it] of Object.entries(d.items || {})) { cleanDeep(it); const cur = S.items[id]; if (!cur || (it.updated || 0) >= (cur.updated || 0)) { S.items[id] = it; delete S.del[id]; n++; } }
     save("items"); save("del"); syncSoon(); render(); toast(`${n} dossier(s) importé(s).`);
   } catch { toast("Ce fichier n'est pas une sauvegarde valide."); }
 }
@@ -812,7 +816,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 /* ═════════ démarrage ═════════ */
 async function boot() {
   const [items, del, pub, calc, ovr] = await Promise.all(["items", "del", "pub", "calc", "ovr"].map(k => store.get(k)));
-  S.items = items || {}; S.del = del || {};
+  S.items = items || {}; if (/[\u2010-\u2015\u2212]/.test(JSON.stringify(S.items))) { cleanDeep(S.items); save("items"); } S.del = del || {};
   if (pub && pub.taux) { S.pub = pub; S.pubSrc = "copie locale"; }
   S.calc = { ...CALC0, ...(calc || {}) };
   if (ovr) S.ovr = ovr;
